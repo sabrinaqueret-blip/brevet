@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Brevet - Entraînement</title>
+<style>
+:root{
+  --purple-50:#EEEDFE;--purple-200:#AFA9EC;--purple-600:#534AB7;--purple-800:#3C3489;
+  --teal-50:#E1F5EE;--teal-200:#5DCAA5;--teal-600:#0F6E56;
+  --amber-50:#FAEEDA;--amber-200:#EF9F27;--amber-600:#854F0B;
+  --coral-50:#FAECE7;--coral-200:#F0997B;--coral-600:#993C1D;
+  --green-50:#EAF3DE;--green-600:#3B6D11;
+  --blue-50:#E6F1FB;--blue-600:#185FA5;
+  --red-50:#fcebeb;--red-600:#a32d2d;
+  --bg-primary:#fff;--bg-secondary:#f5f4f1;--bg-tertiary:#ebeae5;
+  --text-primary:#1a1a18;--text-secondary:#6b6a64;--text-tertiary:#9a9890;
+  --border:rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg-tertiary);color:var(--text-primary);min-height:100vh}
+.app{display:flex;flex-direction:column;min-height:100vh}
+header{background:var(--bg-primary);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+.logo-icon{width:28px;height:28px;background:var(--purple-600);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.nav-tabs{display:flex;gap:4px}
+.nav-btn{padding:7px 16px;border-radius:6px;border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--text-secondary);transition:all 0.15s}
+.nav-btn.active{background:var(--purple-50);color:var(--purple-800);font-weight:600}
+.nav-btn:hover:not(.active){background:var(--bg-secondary)}
+.main{flex:1;padding:1.5rem;max-width:900px;margin:0 auto;width:100%}
+.page{display:none}
+.page.active{display:block}
+.sync-badge{font-size:11px;color:var(--text-tertiary);display:flex;align-items:center;gap:4px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--teal-200)}
+.sync-dot.offline{background:var(--coral-200)}
+
+/* Dashboard */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{background:var(--bg-secondary);border-radius:8px;padding:1rem;text-align:center}
+.stat-val{font-size:24px;font-weight:600;margin-bottom:4px}
+.stat-lbl{font-size:12px;color:var(--text-secondary)}
+.section-title{font-size:15px;font-weight:600;margin-bottom:12px;margin-top:1.5rem}
+.progress-list{display:flex;flex-direction:column;gap:10px}
+.progress-item{background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
+.progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.prog-name{font-size:13px;font-weight:600}
+.prog-pct{font-size:12px;color:var(--text-secondary)}
+.prog-bar{height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.4s ease}
+.session-item{background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:8px}
+.session-meta{color:var(--text-secondary);font-size:12px}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-ok{background:var(--green-50);color:var(--green-600)}
+.badge-mid{background:var(--amber-50);color:var(--amber-600)}
+.badge-bad{background:var(--coral-50);color:var(--coral-600)}
+.last-activity{background:var(--purple-50);border-radius:8px;padding:14px 16px;margin-bottom:1rem;font-size:13px;color:var(--purple-800)}
+.last-activity strong{font-weight:600}
+
+/* Exercice page */
+.matiere-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.mat-btn{border:1px solid var(--border);background:var(--bg-primary);border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;transition:all 0.15s;font-size:13px;font-weight:600}
+.mat-btn:hover{border-color:var(--purple-600);background:var(--purple-50)}
+.mat-btn.selected{border-color:var(--purple-600);background:var(--purple-50);color:var(--purple-800)}
+.mat-icon{font-size:20px;margin-bottom:6px}
+.type-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1.5rem}
+.type-btn{border:1px solid var(--border);background:var(--bg-primary);border-radius:8px;padding:10px 12px;cursor:pointer;font-size:13px;text-align:left;transition:all 0.15s}
+.type-btn:hover{border-color:var(--purple-600);background:var(--purple-50)}
+.type-btn.selected{border-color:var(--purple-600);background:var(--purple-50);color:var(--purple-800);font-weight:600}
+.start-btn{width:100%;padding:12px;border-radius:8px;border:none;background:var(--purple-600);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:opacity 0.15s}
+.start-btn:hover{opacity:0.9}
+.start-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* Question zone */
+.question-card{background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.q-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.q-meta{font-size:12px;color:var(--text-secondary)}
+.q-text{font-size:15px;line-height:1.6;margin-bottom:1.25rem;white-space:pre-wrap}
+.choices{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem}
+.choice-btn{padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);text-align:left;cursor:pointer;font-size:13px;transition:all 0.15s}
+.choice-btn:hover{border-color:var(--purple-200);background:var(--purple-50)}
+.choice-btn.correct{border-color:var(--teal-600);background:var(--teal-50);color:var(--teal-600);font-weight:600}
+.choice-btn.wrong{border-color:#e24b4a;background:var(--red-50);color:var(--red-600)}
+.choice-btn:disabled{cursor:default}
+textarea.open-answer{width:100%;min-height:110px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;background:var(--bg-primary);color:var(--text-primary)}
+textarea.open-answer:focus{outline:none;border-color:var(--purple-600)}
+.dictee-zone{background:var(--purple-50);border:1px solid var(--purple-200);border-radius:8px;padding:14px;margin-bottom:1rem;font-size:14px;line-height:1.8;color:var(--purple-800)}
+.action-row{display:flex;gap:8px;margin-top:1rem}
+.btn-primary{flex:1;padding:10px;border-radius:8px;border:none;background:var(--purple-600);color:#fff;font-size:13px;font-weight:600;cursor:pointer}
+.btn-primary:hover{opacity:0.9}
+.btn-secondary{padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);font-size:13px;cursor:pointer}
+.btn-secondary:hover{background:var(--bg-secondary)}
+.feedback-zone{background:var(--bg-secondary);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;margin-top:1rem}
+.score-bar{display:flex;justify-content:space-between;align-items:center;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px}
+.progress-indicator{display:flex;gap:4px;margin-bottom:1rem}
+.prog-dot{width:8px;height:8px;border-radius:50%;background:var(--bg-secondary);border:1px solid var(--border);transition:all 0.2s}
+.prog-dot.done-ok{background:var(--teal-200);border-color:var(--teal-200)}
+.prog-dot.done-bad{background:var(--coral-200);border-color:var(--coral-200)}
+.prog-dot.current{background:var(--purple-600);border-color:var(--purple-600)}
+
+/* Fin session */
+.result-card{background:var(--bg-primary);border:1px solid var(--border);border-radius:12px;padding:2rem;text-align:center;margin-bottom:1.5rem}
+.result-score{font-size:48px;font-weight:700;color:var(--purple-600);margin-bottom:8px}
+.result-sub{font-size:14px;color:var(--text-secondary);margin-bottom:1.5rem}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text-secondary);font-size:14px}
+.name-gate{max-width:340px;margin:4rem auto;text-align:center}
+.name-gate input{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);font-size:15px;margin:1rem 0;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo"><div class="logo-icon">📚</div>Mon Brevet</div>
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="showPage('eleve')" id="tab-eleve">Élève</button>
+    <button class="nav-btn" onclick="showPage('dashboard')" id="tab-dashboard">Suivi parent</button>
+  </div>
+  <div class="sync-badge"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Connexion…</span></div>
+</header>
+
+<div class="main">
+
+<div id="page-eleve" class="page active">
+  <div id="zone-choix">
+    <p class="section-title">Choisir une matière</p>
+    <div class="matiere-grid">
+      <div class="mat-btn" data-mat="Mathématiques" onclick="selectMat(this)"><div class="mat-icon">📐</div>Maths</div>
+      <div class="mat-btn" data-mat="Français" onclick="selectMat(this)"><div class="mat-icon">✏️</div>Français</div>
+      <div class="mat-btn" data-mat="Histoire-Géographie" onclick="selectMat(this)"><div class="mat-icon">🌍</div>Histoire-Géo</div>
+      <div class="mat-btn" data-mat="SVT" onclick="selectMat(this)"><div class="mat-icon">🔬</div>SVT</div>
+      <div class="mat-btn" data-mat="Physique-Chimie" onclick="selectMat(this)"><div class="mat-icon">⚗️</div>Physique-Chimie</div>
+      <div class="mat-btn" data-mat="Anglais" onclick="selectMat(this)"><div class="mat-icon">🇬🇧</div>Anglais</div>
+    </div>
+    <p class="section-title">Type d'exercice</p>
+    <div class="type-grid">
+      <div class="type-btn" data-type="qcm" onclick="selectType(this)">📋 QCM</div>
+      <div class="type-btn" data-type="ouvert" onclick="selectType(this)">💬 Question ouverte</div>
+      <div class="type-btn" data-type="calcul" onclick="selectType(this)">🔢 Calcul / Problème</div>
+      <div class="type-btn" data-type="dictee" onclick="selectType(this)">🎧 Dictée / Rédaction</div>
+    </div>
+    <button class="start-btn" id="btn-start" disabled onclick="startSession()">Commencer la session →</button>
+  </div>
+
+  <div id="zone-exercice" style="display:none">
+    <div class="score-bar">
+      <span id="session-label" style="font-weight:600"></span>
+      <span id="session-timer" style="color:var(--purple-600);font-weight:600">⏱ 00:00</span>
+    </div>
+    <div class="progress-indicator" id="prog-dots"></div>
+    <div id="question-container"></div>
+  </div>
+
+  <div id="zone-resultats" style="display:none">
+    <div class="result-card">
+      <div class="result-score" id="final-score"></div>
+      <div class="result-sub" id="final-sub"></div>
+      <div id="final-detail"></div>
+    </div>
+    <button class="start-btn" onclick="retour()">← Nouvelle session</button>
+  </div>
+</div>
+
+<div id="page-dashboard" class="page">
+  <div id="last-activity-zone"></div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="d-sessions">0</div><div class="stat-lbl">Sessions</div></div>
+    <div class="stat-card"><div class="stat-val" id="d-time">0 min</div><div class="stat-lbl">Temps total</div></div>
+    <div class="stat-card"><div class="stat-val" id="d-score">—</div><div class="stat-lbl">Score moyen</div></div>
+    <div class="stat-card"><div class="stat-val" id="d-streak">0</div><div class="stat-lbl">Jours de suite</div></div>
+  </div>
+
+  <p class="section-title">Progression par matière</p>
+  <div class="progress-list" id="progress-list"></div>
+
+  <p class="section-title">Nombre de questions traitées par sujet</p>
+  <div class="progress-list" id="questions-list"></div>
+
+  <p class="section-title">Historique des sessions</p>
+  <div id="session-history"></div>
+</div>
+
+</div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, Timestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCEXtGsPyLdrzbYXcPy5OzamWDt9SpTdpQ",
+  authDomain: "brevet-fille.firebaseapp.com",
+  projectId: "brevet-fille",
+  storageBucket: "brevet-fille.firebasestorage.app",
+  messagingSenderId: "231313407519",
+  appId: "1:231313407519:web:adcf1e5dc3cafdc798df2a"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const SESSIONS_COL = collection(db, "sessions");
+
+window.__saveSessionToFirestore = async function(sessionDoc){
+  try{
+    await addDoc(SESSIONS_COL, {
+      ...sessionDoc,
+      createdAt: serverTimestamp()
+    });
+    setSync(true);
+  }catch(e){
+    console.error("Erreur sauvegarde Firestore", e);
+    setSync(false);
+  }
+};
+
+window.__loadAllSessions = async function(){
+  try{
+    const q = query(SESSIONS_COL, orderBy("ts","desc"));
+    const snap = await getDocs(q);
+    const out = [];
+    snap.forEach(doc=>out.push(doc.data()));
+    setSync(true);
+    return out;
+  }catch(e){
+    console.error("Erreur lecture Firestore", e);
+    setSync(false);
+    return [];
+  }
+};
+
+function setSync(ok){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-text');
+  if(!dot) return;
+  if(ok){ dot.classList.remove('offline'); txt.textContent='Synchronisé'; }
+  else{ dot.classList.add('offline'); txt.textContent='Hors ligne'; }
+}
+
+// signal ready
+window.__firebaseReady = true;
+document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+const MATIERES = ['Mathématiques','Français','Histoire-Géographie','SVT','Physique-Chimie','Anglais'];
+const COLORS = {
+  'Mathématiques':'#7F77DD','Français':'#1D9E75','Histoire-Géographie':'#EF9F27',
+  'SVT':'#5DCAA5','Physique-Chimie':'#D85A30','Anglais':'#378ADD'
+};
+
+/* ===================== BANQUE DE QUESTIONS ===================== */
+const BANK = {
+  "Mathématiques": {
+    qcm: [
+      {q:"Quelle est la valeur de (3x − 5) pour x = 4 ?",choices:["7","12","17","9"],answer:"7",explication:"3×4 − 5 = 12 − 5 = 7."},
+      {q:"Un triangle rectangle a des côtés 3 cm et 4 cm. Quelle est la longueur de l'hypoténuse ?",choices:["5 cm","6 cm","7 cm","4,5 cm"],answer:"5 cm",explication:"Pythagore : √(3²+4²) = √25 = 5."},
+      {q:"Quel est le résultat de 15% de 200 ?",choices:["30","20","15","25"],answer:"30",explication:"200 × 0,15 = 30."},
+      {q:"Quelle est la solution de l'équation 2x + 3 = 11 ?",choices:["x = 4","x = 5","x = 3","x = 7"],answer:"x = 4",explication:"2x = 8 donc x = 4."},
+      {q:"Quel est le volume d'un cube d'arête 3 cm ?",choices:["27 cm³","9 cm³","18 cm³","6 cm³"],answer:"27 cm³",explication:"3³ = 27."},
+      {q:"Quelle fraction est égale à 0,75 ?",choices:["3/4","2/3","4/5","1/2"],answer:"3/4",explication:"3 ÷ 4 = 0,75."},
+      {q:"Dans un repère, quelle est la pente de la droite passant par (0,0) et (2,4) ?",choices:["2","4","1/2","0,5"],answer:"2",explication:"Pente = (4−0)/(2−0) = 2."},
+      {q:"Quelle est la médiane de la série : 2, 4, 5, 7, 9 ?",choices:["5","4","6","7"],answer:"5",explication:"Valeur centrale de la série ordonnée."}
+    ],
+    calcul: [
+      {q:"Calculer A = 5 × (3 + 4) − 6. Détaille les étapes.",corrige:"A = 5×7 − 6 = 35 − 6 = 29. On applique d'abord la parenthèse, puis la multiplication, puis la soustraction."},
+      {q:"Un rectangle a une longueur de 12 cm et une largeur de 7 cm. Calculer son périmètre et son aire.",corrige:"Périmètre = 2×(12+7) = 38 cm. Aire = 12×7 = 84 cm²."},
+      {q:"Résoudre l'équation : 3x − 7 = 2x + 5.",corrige:"3x − 2x = 5 + 7 → x = 12."},
+      {q:"Un article coûte 80€. Il est soldé à -25%. Quel est le nouveau prix ?",corrige:"Réduction = 80×0,25 = 20€. Nouveau prix = 80−20 = 60€."},
+      {q:"Calculer le périmètre d'un cercle de rayon 5 cm (π ≈ 3,14).",corrige:"Périmètre = 2×π×r = 2×3,14×5 = 31,4 cm."}
+    ]
+  },
+  "Français": {
+    ouvert: [
+      {q:"Identifie le sujet, le verbe et le complément dans la phrase : « Le chat noir poursuit la souris dans le jardin. »",corrige:"Sujet : le chat noir. Verbe : poursuit. COD : la souris. Complément circonstanciel de lieu : dans le jardin."},
+      {q:"Qu'est-ce qu'une métaphore ? Donne un exemple.",corrige:"Une métaphore est une comparaison sans outil de comparaison (sans 'comme'). Exemple : « Cet homme est un lion » (au lieu de « il est courageux comme un lion »)."},
+      {q:"Conjugue le verbe 'finir' au passé simple, à toutes les personnes.",corrige:"Je finis, tu finis, il/elle finit, nous finîmes, vous finîtes, ils/elles finirent."},
+      {q:"Explique la différence entre un narrateur interne et un narrateur externe.",corrige:"Le narrateur interne raconte l'histoire à la première personne, en étant un personnage de l'histoire. Le narrateur externe raconte à la troisième personne, sans être un personnage, avec un regard extérieur."},
+      {q:"Donne la nature et la fonction du mot souligné : « Elle marche RAPIDEMENT vers l'école. »",corrige:"Nature : adverbe. Fonction : complément circonstanciel de manière, il modifie le verbe 'marche'."}
+    ],
+    dictee: [
+      {texte:"Le soleil se levait doucement sur la colline endormie. Les oiseaux chantaient déjà, annonçant un jour nouveau. Au loin, on apercevait la silhouette d'un village paisible, blotti entre les arbres.",consigne:"Lis ce texte attentivement deux fois, puis écris-le de mémoire le plus fidèlement possible.",corrige:"Le soleil se levait doucement sur la colline endormie. Les oiseaux chantaient déjà, annonçant un jour nouveau. Au loin, on apercevait la silhouette d'un village paisible, blotti entre les arbres."},
+      {texte:"Depuis qu'elle avait déménagé, Camille se sentait différente. Elle observait son nouveau quartier avec curiosité, découvrant chaque jour de nouveaux visages et de nouvelles habitudes.",consigne:"Lis ce texte attentivement deux fois, puis écris-le de mémoire le plus fidèlement possible.",corrige:"Depuis qu'elle avait déménagé, Camille se sentait différente. Elle observait son nouveau quartier avec curiosité, découvrant chaque jour de nouveaux visages et de nouvelles habitudes."}
+    ]
+  },
+  "Histoire-Géographie": {
+    qcm: [
+      {q:"En quelle année a eu lieu la Révolution française ?",choices:["1789","1799","1804","1815"],answer:"1789",explication:"La prise de la Bastille a lieu le 14 juillet 1789."},
+      {q:"Quel traité met fin à la Première Guerre mondiale ?",choices:["Traité de Versailles","Traité de Vienne","Traité de Rome","Traité de Maastricht"],answer:"Traité de Versailles",explication:"Signé en juin 1919."},
+      {q:"Quelle est la capitale de l'Union européenne (siège des institutions) ?",choices:["Bruxelles","Paris","Strasbourg","Genève"],answer:"Bruxelles",explication:"Bruxelles abrite la Commission européenne et le Conseil."},
+      {q:"Qui était le président français pendant la Seconde Guerre mondiale et la Résistance, après-guerre ?",choices:["Charles de Gaulle","Georges Pompidou","François Mitterrand","Vincent Auriol"],answer:"Charles de Gaulle",explication:"Il a dirigé la France libre puis a été président de 1959 à 1969."},
+      {q:"Quel océan borde la côte ouest de la France ?",choices:["Atlantique","Pacifique","Indien","Arctique"],answer:"Atlantique",explication:"La façade ouest est bordée par l'océan Atlantique."}
+    ],
+    ouvert: [
+      {q:"Explique en quelques lignes les causes principales de la Première Guerre mondiale.",corrige:"Tensions entre puissances européennes (rivalités coloniales, course aux armements), alliances militaires opposées (Triple Entente / Triple Alliance), montée des nationalismes, et déclencheur : l'assassinat de l'archiduc François-Ferdinand à Sarajevo en 1914."},
+      {q:"Qu'est-ce que la mondialisation ? Donne un exemple concret.",corrige:"La mondialisation est l'intensification des échanges (commerciaux, financiers, culturels) à l'échelle mondiale. Exemple : un smartphone conçu aux USA, fabriqué en Chine avec des composants venus de plusieurs pays, puis vendu dans le monde entier."}
+    ]
+  },
+  "SVT": {
+    qcm: [
+      {q:"Quel organe produit l'insuline dans le corps humain ?",choices:["Le pancréas","Le foie","Les reins","L'estomac"],answer:"Le pancréas",explication:"Le pancréas régule la glycémie via l'insuline."},
+      {q:"Quel gaz les plantes absorbent-elles lors de la photosynthèse ?",choices:["Le dioxyde de carbone (CO2)","L'oxygène (O2)","L'azote (N2)","L'hydrogène (H2)"],answer:"Le dioxyde de carbone (CO2)",explication:"Les plantes absorbent le CO2 et rejettent de l'O2."},
+      {q:"Combien de chromosomes possède une cellule humaine normale ?",choices:["46","23","44","48"],answer:"46",explication:"23 paires de chromosomes, soit 46 au total."},
+      {q:"Quel est le rôle des globules rouges ?",choices:["Transporter l'oxygène","Combattre les infections","Coaguler le sang","Digérer les aliments"],answer:"Transporter l'oxygène",explication:"Grâce à l'hémoglobine qu'ils contiennent."}
+    ],
+    ouvert: [
+      {q:"Explique le rôle du système nerveux dans la perception de la douleur.",corrige:"Des récepteurs sensoriels détectent un stimulus douloureux, l'information est transmise par les nerfs sensitifs vers la moelle épinière puis le cerveau, qui interprète le signal comme une douleur et peut déclencher une réaction (retrait, réflexe)."},
+      {q:"Qu'est-ce que la biodiversité et pourquoi est-elle importante ?",corrige:"La biodiversité désigne la diversité des espèces vivantes, des gènes et des écosystèmes. Elle est essentielle car elle assure l'équilibre des écosystèmes, la pollinisation, la régulation du climat et fournit des ressources (nourriture, médicaments)."}
+    ]
+  },
+  "Physique-Chimie": {
+    qcm: [
+      {q:"Quelle est l'unité de la force dans le système international ?",choices:["Le newton (N)","Le joule (J)","Le watt (W)","Le pascal (Pa)"],answer:"Le newton (N)",explication:"La force se mesure en newtons."},
+      {q:"Quel est le symbole chimique de l'eau ?",choices:["H2O","CO2","O2","H2O2"],answer:"H2O",explication:"L'eau est composée de 2 atomes d'hydrogène et 1 d'oxygène."},
+      {q:"Quelle est la vitesse de la lumière dans le vide (arrondie) ?",choices:["300 000 km/s","150 000 km/s","1 000 000 km/s","30 000 km/s"],answer:"300 000 km/s",explication:"Exactement 299 792 km/s, arrondi à 300 000 km/s."},
+      {q:"Qu'est-ce qu'un atome neutre ?",choices:["Un atome avec autant de protons que d'électrons","Un atome sans neutrons","Un atome sans électrons","Un atome radioactif"],answer:"Un atome avec autant de protons que d'électrons",explication:"La neutralité électrique vient de l'équilibre charges positives/négatives."}
+    ],
+    calcul: [
+      {q:"Une voiture parcourt 150 km en 2 heures. Calculer sa vitesse moyenne.",corrige:"Vitesse = distance / temps = 150 / 2 = 75 km/h."},
+      {q:"Calculer l'énergie cinétique d'un objet de masse 2 kg se déplaçant à 5 m/s (Ec = ½mv²).",corrige:"Ec = 0,5 × 2 × 5² = 0,5 × 2 × 25 = 25 joules."}
+    ]
+  },
+  "Anglais": {
+    qcm: [
+      {q:"Choose the correct form: 'She ___ to school every day.'",choices:["goes","go","going","went"],answer:"goes",explication:"Present simple, 3rd person singular: 'she goes'."},
+      {q:"What is the past tense of 'to write'?",choices:["wrote","writed","writen","writes"],answer:"wrote",explication:"'Write' is an irregular verb: write/wrote/written."},
+      {q:"Translate: 'J'ai mangé une pomme.'",choices:["I ate an apple","I eat an apple","I eating an apple","I have eat an apple"],answer:"I ate an apple",explication:"Passé composé français = preterit anglais ici."},
+      {q:"Choose the correct comparative: 'This book is ___ than that one.'",choices:["more interesting","interestinger","most interesting","interesting"],answer:"more interesting",explication:"Adjectifs longs : 'more + adjectif'."}
+    ],
+    ouvert: [
+      {q:"Write 3 sentences describing your daily routine in English.",corrige:"Exemple : I wake up at 7am. I go to school by bus. I do my homework in the evening. (vérifier : sujet + verbe conjugué au présent simple, orthographe correcte)"}
+    ]
+  }
+};
+
+let state = { selectedMat:null, selectedType:null, session:null, sessionStart:null, timerInterval:null };
+let allSessionsCache = [];
+
+function shuffle(arr){ return [...arr].sort(()=>Math.random()-0.5); }
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('tab-'+p).classList.add('active');
+  if(p==='dashboard') renderDashboard();
+}
+
+function selectMat(el){
+  document.querySelectorAll('.mat-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedMat = el.dataset.mat;
+  checkReady();
+}
+function selectType(el){
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedType = el.dataset.type;
+  checkReady();
+}
+function checkReady(){
+  const ready = state.selectedMat && state.selectedType && BANK[state.selectedMat] && BANK[state.selectedMat][state.selectedType];
+  document.getElementById('btn-start').disabled = !ready;
+  if(state.selectedMat && state.selectedType && !ready){
+    alert("Ce type d'exercice n'est pas encore disponible pour cette matière. Essaie une autre combinaison !");
+  }
+}
+
+function startSession(){
+  document.getElementById('zone-choix').style.display='none';
+  document.getElementById('zone-exercice').style.display='block';
+  document.getElementById('zone-resultats').style.display='none';
+
+  const bankSet = BANK[state.selectedMat][state.selectedType];
+  const questions = shuffle(bankSet).slice(0, Math.min(5, bankSet.length));
+
+  state.session = {
+    matiere: state.selectedMat, type: state.selectedType,
+    questions, answers:[], scores:[], startTs: Date.now(), duration:0
+  };
+  state.sessionStart = Date.now();
+  document.getElementById('session-label').textContent = state.selectedMat + ' — ' + typeLabel(state.selectedType);
+  startTimer();
+  renderQuestion(0);
+}
+
+function typeLabel(t){ return {qcm:'QCM',ouvert:'Question ouverte',calcul:'Calcul',dictee:'Dictée / Rédaction'}[t]||t; }
+
+function startTimer(){
+  let s=0;
+  state.timerInterval = setInterval(()=>{
+    s++;
+    const m=Math.floor(s/60).toString().padStart(2,'0');
+    const sec=(s%60).toString().padStart(2,'0');
+    document.getElementById('session-timer').textContent='⏱ '+m+':'+sec;
+  },1000);
+}
+
+let currentQ=0, answered=false;
+
+function renderDots(){
+  const n=state.session.questions.length;
+  const d=document.getElementById('prog-dots'); d.innerHTML='';
+  for(let i=0;i<n;i++){
+    const dot=document.createElement('div');
+    dot.className='prog-dot'+(i===currentQ?' current':'');
+    dot.id='dot-'+i; d.appendChild(dot);
+  }
+}
+function updateDot(i,ok){ const d=document.getElementById('dot-'+i); if(d) d.className='prog-dot '+(ok?'done-ok':'done-bad'); }
+
+function renderQuestion(idx){
+  currentQ=idx; answered=false;
+  renderDots();
+  const q=state.session.questions[idx];
+  const type=state.session.type;
+  const container=document.getElementById('question-container');
+  const total=state.session.questions.length;
+
+  let html=`<div class="question-card">
+    <div class="q-header"><span class="q-meta">${state.selectedMat} · Question ${idx+1}/${total}</span></div>
+    <div class="q-text">${q.q}</div>`;
+
+  if(type==='qcm'){
+    const choices = shuffle(q.choices);
+    html+=`<div class="choices">`;
+    choices.forEach((c)=>{
+      html+=`<button class="choice-btn" onclick="answerQCM(this,'${escStr(c)}','${escStr(q.answer)}')">${c}</button>`;
+    });
+    html+=`</div><div id="feedback-qcm" style="display:none" class="feedback-zone"></div>
+    <div class="action-row" id="action-row" style="display:none"><button class="btn-primary" onclick="nextQuestion()">Question suivante →</button></div>`;
+  } else if(type==='dictee'){
+    html+=`<div class="dictee-zone">${q.texte}</div>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px">${q.consigne}</p>
+    <textarea class="open-answer" id="user-answer" placeholder="Écris ici de mémoire…"></textarea>
+    <div id="feedback-open" style="display:none" class="feedback-zone"></div>
+    <div class="action-row"><button class="btn-primary" onclick="answerOpen()">Voir la correction</button></div>`;
+  } else {
+    html+=`<textarea class="open-answer" id="user-answer" placeholder="Ta réponse…"></textarea>
+    <div id="feedback-open" style="display:none" class="feedback-zone"></div>
+    <div class="action-row"><button class="btn-primary" onclick="answerOpen()">Voir la correction</button></div>`;
+  }
+  html+=`</div>`;
+  container.innerHTML=html;
+}
+
+function escStr(s){ return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,' '); }
+function escHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function answerQCM(btnEl, chosen, correct){
+  if(answered) return;
+  answered=true;
+  const ok = chosen.trim()===correct.trim();
+  const q=state.session.questions[currentQ];
+  state.session.answers.push(chosen);
+  state.session.scores.push(ok?1:0);
+
+  document.querySelectorAll('.choice-btn').forEach((b)=>{
+    b.disabled=true;
+    if(b.textContent.trim()===correct.trim()) b.classList.add('correct');
+    else if(b===btnEl) b.classList.add('wrong');
+  });
+
+  const fb=document.getElementById('feedback-qcm');
+  fb.style.display='block';
+  fb.innerHTML=(ok?'✅ Bonne réponse ! ':'❌ Mauvaise réponse. ')+escHtml(q.explication||'');
+  document.getElementById('action-row').style.display='flex';
+  updateDot(currentQ,ok);
+}
+
+function answerOpen(){
+  if(answered) return;
+  const userAns=document.getElementById('user-answer').value.trim();
+  if(!userAns){ alert('Écris ta réponse avant de voir la correction !'); return; }
+  answered=true;
+  const q=state.session.questions[currentQ];
+  state.session.answers.push(userAns);
+  state.session.scores.push(1); // auto-évaluation : on compte comme "traité"
+
+  const fb=document.getElementById('feedback-open');
+  fb.style.display='block';
+  fb.innerHTML=`<div style="margin-bottom:8px;font-weight:600">Correction proposée :</div>
+  <div style="white-space:pre-wrap">${escHtml(q.corrige)}</div>
+  <p style="font-size:12px;color:var(--text-secondary);margin-top:10px">Compare avec ta réponse et identifie ce qui manque.</p>
+  <div class="action-row" style="margin-top:10px">
+    <button class="btn-secondary" onclick="markSelf(false)">😕 J'ai eu faux</button>
+    <button class="btn-primary" onclick="markSelf(true)">✅ J'ai eu juste</button>
+  </div>`;
+  updateDot(currentQ,true);
+}
+
+function markSelf(ok){
+  state.session.scores[state.session.scores.length-1] = ok?1:0;
+  updateDot(currentQ, ok);
+  const fb=document.getElementById('feedback-open');
+  fb.innerHTML+=`<div class="action-row"><button class="btn-primary" onclick="nextQuestion()">Question suivante →</button></div>`;
+}
+
+function nextQuestion(){
+  const total=state.session.questions.length;
+  if(currentQ+1<total) renderQuestion(currentQ+1);
+  else endSession();
+}
+
+async function endSession(){
+  clearInterval(state.timerInterval);
+  const dur=Math.round((Date.now()-state.sessionStart)/1000);
+  state.session.duration=dur;
+
+  const scores=state.session.scores;
+  const avg=scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : 0;
+  const pct=Math.round(avg*100);
+  const now=Date.now();
+
+  const sessionDoc = {
+    date:new Date().toLocaleDateString('fr-FR'),
+    ts: now,
+    lastAnswerTime: now,
+    matiere: state.session.matiere,
+    type: state.session.type,
+    score: pct,
+    duration: dur,
+    nb: scores.length
+  };
+
+  if(window.__saveSessionToFirestore){
+    await window.__saveSessionToFirestore(sessionDoc);
+  }
+
+  document.getElementById('zone-exercice').style.display='none';
+  document.getElementById('zone-resultats').style.display='block';
+  document.getElementById('final-score').textContent=pct+'%';
+  document.getElementById('final-sub').textContent=state.session.matiere+' · '+typeLabel(state.session.type)+' · '+fmtDur(dur);
+
+  let emoji='😊';
+  if(pct>=80) emoji='🎉'; else if(pct<50) emoji='💪';
+  document.getElementById('final-detail').innerHTML=`<p style="font-size:14px;line-height:1.7">${emoji} ${scores.length} questions — ${scores.filter(s=>s>=0.5).length} réussies. ${pct>=70?'Excellent travail !':'Continue comme ça, tu progresseras !'}</p>`;
+}
+
+function fmtDur(s){ if(s<60) return s+'s'; return Math.floor(s/60)+'min '+(s%60)+'s'; }
+
+function retour(){
+  document.getElementById('zone-choix').style.display='block';
+  document.getElementById('zone-exercice').style.display='none';
+  document.getElementById('zone-resultats').style.display='none';
+  state.selectedMat=null; state.selectedType=null;
+  document.querySelectorAll('.mat-btn,.type-btn').forEach(b=>b.classList.remove('selected'));
+  checkReady();
+}
+
+/* ===================== DASHBOARD PARENT ===================== */
+async function renderDashboard(){
+  const container = document.getElementById('progress-list');
+  container.innerHTML = '<div class="empty-state">Chargement…</div>';
+
+  const sessions = window.__loadAllSessions ? await window.__loadAllSessions() : [];
+  allSessionsCache = sessions;
+
+  const totalTime = sessions.reduce((a,s)=>a+(s.duration||0),0);
+  const avgScore = sessions.length ? Math.round(sessions.reduce((a,s)=>a+(s.score||0),0)/sessions.length) : null;
+
+  document.getElementById('d-sessions').textContent = sessions.length;
+  document.getElementById('d-time').textContent = Math.round(totalTime/60)+' min';
+  document.getElementById('d-score').textContent = avgScore!==null? avgScore+'%':'—';
+  document.getElementById('d-streak').textContent = calcStreak(sessions);
+
+  // Dernière activité
+  const lastZone = document.getElementById('last-activity-zone');
+  if(sessions.length){
+    const last = sessions[0]; // déjà trié desc par ts
+    const lastDate = new Date(last.ts);
+    lastZone.innerHTML = `<div class="last-activity">
+      <strong>Dernière activité :</strong> ${last.matiere} (${typeLabel(last.type)}) —
+      ${lastDate.toLocaleDateString('fr-FR')} à ${lastDate.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})},
+      score ${last.score}%, durée ${fmtDur(last.duration||0)}
+    </div>`;
+  } else {
+    lastZone.innerHTML = '';
+  }
+
+  // Progression par matière (score moyen + temps)
+  const matStats = {};
+  sessions.forEach(s=>{
+    if(!matStats[s.matiere]) matStats[s.matiere]={sessions:0,totalScore:0,totalTime:0,nbQuestions:0};
+    matStats[s.matiere].sessions++;
+    matStats[s.matiere].totalScore += (s.score||0);
+    matStats[s.matiere].totalTime += Math.round((s.duration||0)/60);
+    matStats[s.matiere].nbQuestions += (s.nb||0);
+  });
+
+  container.innerHTML='';
+  MATIERES.forEach(mat=>{
+    const ms=matStats[mat];
+    if(!ms) return;
+    const avg=Math.round(ms.totalScore/ms.sessions);
+    const col=COLORS[mat]||'#7F77DD';
+    container.innerHTML+=`<div class="progress-item">
+      <div class="progress-header">
+        <span class="prog-name">${mat}</span>
+        <span class="prog-pct">${avg}% · ${ms.sessions} session(s) · ${ms.totalTime}min</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${avg}%;background:${col}"></div></div>
+    </div>`;
+  });
+  if(!container.innerHTML) container.innerHTML='<div class="empty-state">Aucune session encore.</div>';
+
+  // Nombre de questions par sujet
+  const qlist = document.getElementById('questions-list');
+  qlist.innerHTML='';
+  MATIERES.forEach(mat=>{
+    const ms=matStats[mat];
+    if(!ms) return;
+    qlist.innerHTML+=`<div class="progress-item" style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px">
+      <span class="prog-name">${mat}</span>
+      <span class="badge" style="background:var(--purple-50);color:var(--purple-800)">${ms.nbQuestions} questions</span>
+    </div>`;
+  });
+  if(!qlist.innerHTML) qlist.innerHTML='<div class="empty-state">Aucune donnée encore.</div>';
+
+  // Historique
+  const hist=document.getElementById('session-history');
+  if(!sessions.length){ hist.innerHTML='<div class="empty-state">Aucune session enregistrée.</div>'; return; }
+  const recent = sessions.slice(0,15);
+  hist.innerHTML = recent.map(s=>{
+    const cls = s.score>=70?'badge-ok':s.score>=50?'badge-mid':'badge-bad';
+    const t = new Date(s.ts);
+    return `<div class="session-item">
+      <div>
+        <span style="font-weight:600">${s.matiere}</span>
+        <span class="session-meta"> · ${typeLabel(s.type)} · ${s.nb} questions · ${fmtDur(s.duration||0)}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="session-meta">${t.toLocaleDateString('fr-FR')} ${t.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>
+        <span class="badge ${cls}">${s.score}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcStreak(sessions){
+  if(!sessions.length) return 0;
+  const days = new Set(sessions.map(s=>s.date));
+  let streak=0, d=new Date();
+  while(true){
+    const key=d.toLocaleDateString('fr-FR');
+    if(days.has(key)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
+</script>
+</body>
+</html>
